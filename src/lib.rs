@@ -1,8 +1,6 @@
 mod wireless_keyboard;
 
-use zerocopy::IntoBytes;
-use zerocopy_derive::{Immutable, IntoBytes};
-use esp_idf_svc::hal::gpio::{ AnyIOPin, PinDriver, Output, Input};
+use esp_idf_svc::hal::gpio::{ AnyIOPin, PinDriver, Output, Input, Pull};
 
 use keyboard::Matrix;
 
@@ -16,10 +14,19 @@ pub struct GpioMatrix<'a> {
 
 impl <'a> GpioMatrix<'a> {
     pub fn new(row_pins: Vec<AnyIOPin>, col_pins: Vec<AnyIOPin>) -> Self {
-        Self {
+        let mut matrix = Self {
             row_pins: row_pins.into_iter().map(|rp| PinDriver::input(rp).unwrap()).collect(),
             col_pins: col_pins.into_iter().map(|cp| PinDriver::output(cp).unwrap()).collect(),
+        };
+
+        for cp in matrix.col_pins.iter_mut() {
+            cp.set_low().unwrap();
         }
+
+        for rp in matrix.row_pins.iter_mut() {
+            rp.set_pull(Pull::Down).unwrap();
+        }
+        matrix
     }
 }
 
@@ -34,7 +41,9 @@ impl Matrix for GpioMatrix<'_> {
                     }
                 }
             }
+            col.set_low().unwrap();
         }
+        ::log::info!("active pos: {:?}", &positions);
         positions
     }
 }
