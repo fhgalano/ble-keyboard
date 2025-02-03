@@ -4,9 +4,7 @@ use esp32_nimble::{
 };
 use keyboard::*;
 use std::sync::Arc;
-use std::ops::Deref;
 use zerocopy::IntoBytes;
-use zerocopy_derive::{Immutable, IntoBytes};
 
 const KEYBOARD_ID: u8 = 0x01;
 const MEDIA_KEYS_ID: u8 = 0x02;
@@ -87,9 +85,10 @@ const HID_REPORT_DISCRIPTOR: &[u8] = hid!(
 pub struct WirelessKeyboard {
   server: &'static mut BLEServer,
   input_keyboard: Arc<Mutex<BLECharacteristic>>,
+  #[allow(unused)]
   output_keyboard: Arc<Mutex<BLECharacteristic>>,
   input_media_keys: Arc<Mutex<BLECharacteristic>>,
-  keyboard: Keyboard,
+  pub keyboard: Keyboard,
 }
 
 impl WirelessKeyboard {
@@ -99,7 +98,8 @@ impl WirelessKeyboard {
     let device = BLEDevice::take();
     device
       .security()
-      .set_auth(AuthReq::all())
+      .set_auth(AuthReq::Bond)
+      .set_passkey(69420)
       .set_io_cap(SecurityIOCap::NoInputNoOutput)
       .resolve_rpa();
 
@@ -110,7 +110,7 @@ impl WirelessKeyboard {
     let output_keyboard = hid.output_report(KEYBOARD_ID);
     let input_media_keys = hid.input_report(MEDIA_KEYS_ID);
 
-    hid.manufacturer("Espressif");
+    hid.manufacturer("DeezKeyboard");
     hid.pnp(0x02, 0x05ac, 0x820a, 0x0210);
     hid.hid_info(0x00, 0x01);
 
@@ -121,7 +121,7 @@ impl WirelessKeyboard {
     let ble_advertising = device.get_advertising();
     ble_advertising.lock().scan_response(false).set_data(
       BLEAdvertisementData::new()
-        .name("Deez Keyboard")
+        .name("DeezKeyboard")
         .appearance(0x03C1)
         .add_service_uuid(hid.hid_service().lock().uuid()),
     )?;
@@ -147,6 +147,15 @@ impl WirelessKeyboard {
       .set_value(keys.as_bytes())
       .notify();
     esp_idf_svc::hal::delay::Ets::delay_ms(7);
+  }
+
+  pub fn poll_and_send(&mut self) {
+      self.keyboard.poll();
+
+      if let Some(rpt) = self.keyboard.give_report() {
+          ::log::info!("Sending Report: {:?}", &rpt);
+          self.send_report(&rpt);
+      }
   }
 
   pub fn test_message(&self) {
