@@ -9,6 +9,9 @@ use zerocopy::IntoBytes;
 const KEYBOARD_ID: u8 = 0x01;
 const MEDIA_KEYS_ID: u8 = 0x02;
 
+const MANUFACTURER: &str = "DaVeggies";
+const DEVICE_NAME: &str = "DeezKeys";
+
 const HID_REPORT_DISCRIPTOR: &[u8] = hid!(
   (USAGE_PAGE, 0x01), // USAGE_PAGE (Generic Desktop Ctrls)
   (USAGE, 0x06),      // USAGE (Keyboard)
@@ -94,14 +97,20 @@ pub struct WirelessKeyboard {
 impl WirelessKeyboard {
   pub fn new(
       keyboard: Keyboard,
+      display_name: Option<String>,
   ) -> anyhow::Result<Self> {
-    let device = BLEDevice::take();
+    let mut device = BLEDevice::take();
     device
       .security()
       .set_auth(AuthReq::Bond)
       .set_passkey(69420)
       .set_io_cap(SecurityIOCap::NoInputNoOutput)
       .resolve_rpa();
+
+    match display_name {
+        Some(n) => BLEDevice::set_device_name(&format!("{}_{}", DEVICE_NAME, n)),
+        None => BLEDevice::set_device_name(DEVICE_NAME),
+    };
 
     let server = device.get_server();
     let mut hid = BLEHIDDevice::new(server);
@@ -110,7 +119,7 @@ impl WirelessKeyboard {
     let output_keyboard = hid.output_report(KEYBOARD_ID);
     let input_media_keys = hid.input_report(MEDIA_KEYS_ID);
 
-    hid.manufacturer("DeezKeyboard");
+    hid.manufacturer(MANUFACTURER);
     hid.pnp(0x02, 0x05ac, 0x820a, 0x0210);
     hid.hid_info(0x00, 0x01);
 
@@ -121,7 +130,7 @@ impl WirelessKeyboard {
     let ble_advertising = device.get_advertising();
     ble_advertising.lock().scan_response(false).set_data(
       BLEAdvertisementData::new()
-        .name("DeezKeyboard")
+        .name(DEVICE_NAME)
         .appearance(0x03C1)
         .add_service_uuid(hid.hid_service().lock().uuid()),
     )?;
