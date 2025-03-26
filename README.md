@@ -15,3 +15,7 @@ I've been having fun with kicad scripting - I like the consistency it creates. I
 The PCB for the keyboard is reversible and uses cherry mx compatible hotswap sockets. It uses most of the gpio pins available on the devkit, but any remaining pins are made available through jst ph-k through hole connectors. It's also only two layers to make it cheaper to iterate through.
 
 _**as of Feb 2025 I have only just placed the order for the first revision of the pcb, so I have no idea if it works. Use at your own risk. I'll update once I get it.**_
+
+*Update: the board works but also has some large flaws - the biggest of which being that the devkit is positioned such that I need to remove several keys in order to program it. I'm lucky that I made this with hotswaps. I don't plan to update the board for a while, despite the flaws - I'll be implementing some new features (quick switching between bonded devices, power saving, using multiple devices as one wirelessly, layer indication leds, timers instead of blocking delays, and other stuff I notice while using it). Once those are done, then I'll look at redesigning the board*
+
+I plan to make documentation eventually, since it's good practice. However, it isn't a huge priority since I am literally the only person aware that this project exists. Also, anyone looking to make a keyboard should probably be using something more feature rich like QMK, RMK, or Keyberon. Nevertheless, if documentation would help your project/learning then I'd be happy to add it in. 
