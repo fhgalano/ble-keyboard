@@ -1,10 +1,16 @@
 mod wireless_keyboard;
+mod wireless_matrix;
+mod multi_matrix;
+mod phantom_matrix;
 
 use esp_idf_svc::hal::gpio::{ AnyIOPin, PinDriver, Output, Input, Pull};
 
 use keyboard::Matrix;
 
 pub use wireless_keyboard::WirelessKeyboard;
+pub use wireless_matrix::WirelessMatrix;
+pub use multi_matrix::MultiMatrix;
+pub use phantom_matrix::PhantomMatrix;
 
 // INFO: Read on rows, output on columns
 pub struct GpioMatrix<'a> {

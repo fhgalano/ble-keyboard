@@ -16,6 +16,16 @@ name = "tests"
 path = "src/bin/tests.rs"
 harness = false
 
+[[bin]]
+name = "secondary"
+path = "src/bin/secondary.rs"
+harness = false
+
+[[bin]]
+name = "primary"
+path = "src/bin/primary.rs"
+harness = false
+
 [profile.release]
 opt-level = "s"
 
@@ -31,12 +41,13 @@ experimental = ["esp-idf-svc/experimental"]
 [dependencies]
 log = "0.4"
 esp-idf-svc = { version = "0.51", features = ["critical-section", "embassy-time-driver", "embassy-sync", "alloc"] }
-esp32-nimble = { version = "0.10.1", features = ["std"] }
+esp32-nimble = { version = "0.11.0", features = ["std"] }
+# esp32-nimble = { path = "../esp32-nimble" }
 zerocopy = "0.8.14"
 zerocopy-derive = "0.8.14"
 anyhow = "1.0.95"
 keyboard = { path = "../keyboard" }
 
 [build-dependencies]
-embuild = { version = "0.32.0", features = ["espidf"] }
+embuild = { version = "0.33.0", features = ["espidf"] }
 cc = "=1.1.30" # Version "1.1.30" necessary until a new version of `esp-idf-sys` is released
